@@ -40,20 +40,7 @@ GitHub
 GitHub
 +3
 
-Estrutura de Diretórios
 
-O projeto está organizado da seguinte forma:
-
-/api
-  /produtos.asp        # Lógica da API para produtos
-/includes
-  /conexao.asp         # Conexão com o banco de dados
-  /validaToken.asp     # Validação de token de autenticação
-  /sidebar.asp         # Componente de barra lateral
-index.asp              # Página principal da aplicação
-login.asp              # Página de login
-relatorios.asp         # Página de relatórios
-usuarios.asp           # Página de gerenciamento de usuários
 
 Como Utilizar
 
