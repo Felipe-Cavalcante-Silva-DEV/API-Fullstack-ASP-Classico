@@ -1,82 +1,91 @@
-API Fullstack ASP Clássico
+# API Fullstack ASP Clássico
 
-Este projeto é uma aplicação web desenvolvida com Classic ASP, utilizando banco de dados SQL Server. Ele serve como uma API para gerenciamento de produtos, permitindo operações de CRUD (Criar, Ler, Atualizar, Excluir) através de requisições HTTP.
-GitHub
-+2
-GitHub
-+2
+Este projeto é uma aplicação web desenvolvida com Classic ASP, utilizando banco de dados SQL Server.
+Ele serve como uma API para gerenciamento de produtos, permitindo operações de CRUD (Criar, Ler, Atualizar, Excluir) através de requisições HTTP.
 
-Funcionalidades
+## Funcionalidades
 
-Cadastro e Edição de Produtos: Formulário para adicionar ou editar produtos, incluindo campos como nome, preço, descrição e estoque.
+* **Cadastro e Edição de Produtos**: Formulário para adicionar ou editar produtos, incluindo campos como nome, preço, descrição e estoque.
+* **Listagem de Produtos**: Exibição de produtos cadastrados em uma tabela, com possibilidade de busca e filtragem.
+* **Exclusão de Produtos**: Remoção de produtos através de um botão de exclusão na tabela.
+* **Integração com API Externa**: Comunicação via AJAX para persistência e importação de dados externos.
 
-Listagem de Produtos: Exibição de produtos cadastrados em uma tabela, com possibilidade de busca e filtragem.
+## Tecnologias Utilizadas
 
-Exclusão de Produtos: Remoção de produtos através de um botão de exclusão na tabela.
+* **Frontend**: HTML, CSS, JavaScript (jQuery), Bootstrap 5
+* **Backend**: Classic ASP (VBScript)
+* **Banco de Dados**: SQL Server
+* **API Externa**: Fake Store API para importação de produtos
 
-Integração com API: Comunicação com uma API externa para persistência de dados.
+## Estrutura de Diretórios
 
-Tecnologias Utilizadas
+```
+/api
+  /produtos.asp        # Lógica da API para produtos
+/includes
+  /conexao.asp         # Conexão com o banco de dados
+  /validaToken.asp     # Validação de token de autenticação
+  /sidebar.asp         # Componente de barra lateral
+index.asp              # Página principal da aplicação
+login.asp              # Página de login
+relatorios.asp         # Página de relatórios
+usuarios.asp           # Página de gerenciamento de usuários
+```
 
-Frontend: HTML, CSS, JavaScript (jQuery), Bootstrap 5
+## Como Utilizar
 
-Backend: Classic ASP (VBScript)
+1. **Clonar o Repositório**
 
-Banco de Dados: SQL Server
+   ```bash
+   git clone https://github.com/Felipe-Cavalcante-Silva-DEV/API-Fullstack-ASP-Classico.git
+   ```
 
-API Externa: Comunicação via requisições HTTP (AJAX)
-GitHub
-+3
-TheOneTechnologies
-+3
-scholarhat.com
-+3
-GitHub
-+1
-Medium
-+3
-GitHub
-+3
-GitHub
-+3
+2. **Configurar o Banco de Dados**
 
+   Crie um banco de dados no SQL Server e execute os scripts SQL necessários para criar as tabelas.
 
+3. **Configurar a Conexão**
 
-Como Utilizar
+   Edite o arquivo `/includes/conexao.asp` para configurar as credenciais de acesso ao banco de dados.
 
-Clonar o Repositório
+4. **Executar a Aplicação**
 
-Clone este repositório para o seu ambiente local:
+   Hospede os arquivos em um servidor que suporte Classic ASP, como o IIS (Internet Information Services) no Windows.
 
-git clone https://github.com/Felipe-Cavalcante-Silva-DEV/API-Fullstack-ASP-Classico.git
+5. **Acessar a Aplicação**
 
+   Abra o navegador e acesse:
 
-Configurar o Banco de Dados
+   ```
+   http://localhost/index.asp
+   ```
 
-Crie um banco de dados no SQL Server e execute os scripts SQL presentes na pasta /SQL para criar as tabelas necessárias.
-
-Configurar a Conexão
-
-Edite o arquivo /includes/conexao.asp para configurar as credenciais de acesso ao banco de dados.
-
-Executar a Aplicação
-
-Hospede os arquivos em um servidor que suporte Classic ASP, como o IIS (Internet Information Services) no Windows.
-
-Acessar a Aplicação
-
-Abra o navegador e acesse http://localhost/index.asp para utilizar a aplicação.
-
-Contribuições
+## Contribuições
 
 Contribuições são bem-vindas! Para contribuir:
 
-Faça um fork deste repositório.
+1. Faça um fork deste repositório.
 
-Crie uma branch para sua funcionalidade (git checkout -b minha-feature).
+2. Crie uma branch para sua funcionalidade:
 
-Faça commit das suas alterações (git commit -am 'Adiciona nova funcionalidade').
+   ```bash
+   git checkout -b minha-feature
+   ```
 
-Push para a branch (git push origin minha-feature).
+3. Faça commit das suas alterações:
 
-Abra um Pull Request.
+   ```bash
+   git commit -am 'Adiciona nova funcionalidade'
+   ```
+
+4. Push para a branch:
+
+   ```bash
+   git push origin minha-feature
+   ```
+
+5. Abra um Pull Request.
+
+## Licença
+
+Este projeto está licenciado sob a Licença MIT - veja o arquivo [LICENSE](LICENSE) para mais detalhes.
