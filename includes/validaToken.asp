@@ -3,10 +3,9 @@
 ' validaToken.asp
 ' =========================
 
-Dim token, rs, sql, authHeader
+Dim token, rs, sql
 
-token = Request.QueryString("token")
-
+token = Trim(Request.QueryString("token"))
 
 If token = "" Then
     Response.Status = "401 Unauthorized"
@@ -14,18 +13,16 @@ If token = "" Then
     Response.End
 End If
 
-' Verifica token no banco usando a função fnValidarToken
-sql = "SELECT dbo.fnValidarToken('" & Replace(token,"'","''") & "') AS isValid"
+sql = "SELECT dbo.fnValidarToken('" & Replace(token,"'","''") & "') AS Valido"
 Set rs = conDB.Execute(sql)
 
-If rs.EOF Or rs("isValid") = 0 Then
+If rs.EOF Or rs("Valido") = 0 Then
     Response.Status = "401 Unauthorized"
     Response.Write "{""success"": false, ""message"": ""Token inválido""}"
     rs.Close
     Set rs = Nothing
     Response.End
 End If
-
 
 rs.Close
 Set rs = Nothing

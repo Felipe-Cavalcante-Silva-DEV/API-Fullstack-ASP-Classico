@@ -1,114 +1,55 @@
 <%@ Language="VBScript" %>
 <!--#include virtual="/includes/conexao.asp" -->
-<!--#include virtual="/includes/auth_utils.asp" -->
 <!--#include virtual="/includes/json.asp" -->
+<!--#include virtual="/includes/geraToken.asp" -->
+<!--#include virtual="/includes/validaTokenApi.asp" -->
+
 <%
 Response.ContentType = "application/json"
-Dim action, nome, descricao, preco, produtoId, estoque, rs, cmd, sql, token
+Dim action, rawJSON, objJSON, produtoId, nome, descricao, preco, estoque
+
 action = Request("action")
-token  = Request("token") ' pode vir via querystring ou header
 
-  
-' 🔒 validar token
-Set cmd = Server.CreateObject("ADODB.Command")
-cmd.ActiveConnection = conDB
+' =========================
+' Funções CRUD de produto
+' =========================
 
-
-cmd.CommandType = 1 ' adCmdText
-cmd.CommandText = "SELECT dbo.fnValidarToken('" & token & "') AS Valido"
-Set rs = cmd.Execute
-
-
-If rs("Valido") = 0 Then
-    Response.Status = "401 Unauthorized"
-    Response.Write "{""error"": ""Token inválido ou expirado""}"
-    Response.End
-End If
-
-
-
-
-
-
-
-
-If action = "list" Then
+Function ListarProdutos()
+    Dim cmd, rs, json, primeiro
     Set cmd = Server.CreateObject("ADODB.Command")
     cmd.ActiveConnection = conDB
     cmd.CommandType = 4
     cmd.CommandText = "spListarProdutos"
     Set rs = cmd.Execute
 
-    Response.Write "["
+    json = "["
+    primeiro = True
+
     Do Until rs.EOF
-        Response.Write "{""ProdutoID"": " & rs("Id") & _
+        ' adiciona vírgula apenas se não for o primeiro
+        If Not primeiro Then json = json & ","
+        primeiro = False
+
+        json = json & "{""ProdutoID"": " & rs("Id") & _
                        ", ""Nome"": """ & rs("Nome") & """" & _
                        ", ""Descricao"": """ & rs("Descricao") & """" & _
                        ", ""Preco"": " & Replace(CStr(rs("Preco")), ",", ".") & _
                        ", ""Estoque"": " & rs("Estoque") & "}"
-
-                       
-                       
         rs.MoveNext
-        If Not rs.EOF Then Response.Write ","
     Loop
-    Response.Write "]"
+
+    json = json & "]"
+
+    rs.Close
+    Set rs = Nothing
+    Set cmd = Nothing
+
+    ListarProdutos = json
+End Function
 
 
-
-
-
-
-
-
-ElseIf action = "add" Then
-    On Error Resume Next
-
-    Response.ContentType = "application/json"
-
-    ' Ler corpo JSON
-    Dim rawJSON
-    rawJSON = ""
-    If Request.TotalBytes > 0 Then
-        rawJSON = BinaryToString(Request.BinaryRead(Request.TotalBytes))
-    End If
-
-    Dim objJSON
-    Set objJSON = Nothing
-
-    ' Tentar parsear JSON
-    On Error Resume Next
-    Set objJSON = ParseJSON(rawJSON)
-    If Err.Number <> 0 Then
-        Response.Write "{""success"":false,""message"":""Erro ao parsear JSON: " & Err.Description & """}"
-        Response.End
-    End If
-    On Error GoTo 0
-
-    If objJSON Is Nothing Then
-        Response.Write "{""success"":false,""message"":""JSON inválido ou vazio""}"
-        Response.End
-    End If
-
-    ' Extrair campos do JSON
-    On Error Resume Next
-    nome = objJSON.nome
-    descricao = objJSON.descricao
-    preco = CDbl(objJSON.preco)
-    estoque = CInt(objJSON.estoque)
-    If Err.Number <> 0 Then
-        Response.Write "{""success"":false,""message"":""Erro ao extrair campos do JSON: " & Err.Description & """}"
-        Response.End
-    End If
-    On Error GoTo 0
-
-    ' Validação básica
-    If nome = "" Or preco <= 0 Then
-        Response.Write "{""success"":false,""message"":""Campos obrigatórios ausentes ou inválidos""}"
-        Response.End
-    End If
-
-    ' Inserir produto via procedure
+Function CriarProduto(nome, descricao, preco, estoque)
+    Dim cmd, rs, novoId
     Set cmd = Server.CreateObject("ADODB.Command")
     cmd.ActiveConnection = conDB
     cmd.CommandType = 4
@@ -120,65 +61,23 @@ ElseIf action = "add" Then
 
     Set rs = cmd.Execute
 
-    ' Capturar ID do novo produto
-    novoId = 0
-    If Not rs.EOF Then novoId = rs("NovoProdutoID")
+    ' capturar o novo ID (assumindo que a procedure retorna NovoProdutoID)
+    If Not rs.EOF Then
+        novoId = rs("NovoProdutoID")
+    Else
+        novoId = 0
+    End If
 
-    ' Retornar JSON final
-    Response.Write "{""success"":true,""message"":""Produto criado com sucesso"",""NovoProdutoID"":" & novoId & "}"
-
+    rs.Close
     Set rs = Nothing
     Set cmd = Nothing
-    Response.End
+
+    CriarProduto = novoId
+End Function
 
 
-
-
-
-
-
-
-ElseIf action = "update" Then
-    On Error Resume Next
-    Response.ContentType = "application/json"
-
-    ' Ler corpo JSON
-
-    rawJSON = ""
-    If Request.TotalBytes > 0 Then
-        rawJSON = BinaryToString(Request.BinaryRead(Request.TotalBytes))
-    End If
-
-
-    Set objJSON = Nothing
-
-    ' Parsear JSON
-    Set objJSON = ParseJSON(rawJSON)
-    If objJSON Is Nothing Then
-        Response.Write "{""success"":false,""message"":""JSON inválido ou vazio""}"
-        Response.End
-    End If
-
-    ' Extrair campos
-    On Error Resume Next
-    produtoId = CLng(objJSON.produtoId)
-    nome      = objJSON.nome
-    descricao = objJSON.descricao
-    preco     = CDbl(objJSON.preco)
-    estoque   = CInt(objJSON.estoque)
-    If Err.Number <> 0 Then
-        Response.Write "{""success"":false,""message"":""Erro ao extrair campos: " & Err.Description & """}"
-        Response.End
-    End If
-    On Error GoTo 0
-
-    ' Validação básica
-    If produtoId <= 0 Or nome = "" Or preco <= 0 Then
-        Response.Write "{""success"":false,""message"":""Campos obrigatórios ausentes ou inválidos""}"
-        Response.End
-    End If
-
-    ' Executar procedure de update
+Function AtualizarProduto(produtoId, nome, descricao, preco, estoque)
+    Dim cmd
     Set cmd = Server.CreateObject("ADODB.Command")
     cmd.ActiveConnection = conDB
     cmd.CommandType = 4
@@ -188,100 +87,80 @@ ElseIf action = "update" Then
     cmd.Parameters.Append cmd.CreateParameter("@Descricao", 200, 1, 500, descricao)
     cmd.Parameters.Append cmd.CreateParameter("@Preco", 5, 1, , preco)
     cmd.Parameters.Append cmd.CreateParameter("@Estoque", 3, 1, , estoque)
-
-    On Error Resume Next
     cmd.Execute
-    If Err.Number <> 0 Then
-        Response.Write "{""success"":false,""message"":""Erro ao atualizar produto: " & Err.Description & """}"
-        Err.Clear
-        Response.End
-    End If
-    On Error GoTo 0
-
-    ' Retorno JSON
-    Response.Write "{""success"":true,""message"":""Produto atualizado com sucesso""}"
-
     Set cmd = Nothing
-    Response.End
+End Function
 
-
-
-
-
-
-
-ElseIf action = "delete" Then
-    On Error Resume Next
-    Response.ContentType = "application/json"
-
-    ' Ler corpo JSON
-
-    rawJSON = ""
-    If Request.TotalBytes > 0 Then
-        rawJSON = BinaryToString(Request.BinaryRead(Request.TotalBytes))
-    End If
-
-    ' Parsear JSON
-
-    Set objJSON = ParseJSON(rawJSON)
-    If objJSON Is Nothing Then
-        Response.Write "{""success"":false,""message"":""JSON inválido ou vazio""}"
-        Response.End
-    End If
-
-    ' Extrair produtoId
-
-    On Error Resume Next
-    produtoId = CLng(objJSON.produtoId)
-    If Err.Number <> 0 Then
-        Response.Write "{""success"":false,""message"":""produtoId inválido""}"
-        Response.End
-    End If
-    On Error GoTo 0
-
-    ' Validação básica
-    If produtoId <= 0 Then
-        Response.Write "{""success"":false,""message"":""produtoId inválido ou não fornecido""}"
-        Response.End
-    End If
-
-    ' Executar procedure de delete
-
+Function ExcluirProduto(produtoId)
+    Dim cmd
     Set cmd = Server.CreateObject("ADODB.Command")
     cmd.ActiveConnection = conDB
     cmd.CommandType = 4
     cmd.CommandText = "spExcluirProduto"
     cmd.Parameters.Append cmd.CreateParameter("@Id", 3, 1, , produtoId)
-
-    On Error Resume Next
     cmd.Execute
-    If Err.Number <> 0 Then
-        Response.Write "{""success"":false,""message"":""Erro ao excluir produto: " & Err.Description & """}"
-        Err.Clear
-        Response.End
-    End If
-    On Error GoTo 0
-
-    ' Retorno JSON
-    Response.Write "{""success"":true,""message"":""Produto excluído com sucesso""}"
-
     Set cmd = Nothing
-    set rs = Nothing        
-    Response.End
+End Function
 
-End if
+' =========================
+' Dispatcher das ações
+' =========================
 
+Select Case action
 
-
-    
-
-
-
-
+    Case "list"
+    Response.Write ListarProdutos()
 
 
+    Case "add", "update", "delete"
+        ' Ler JSON do corpo
+        rawJSON = ""
+        If Request.TotalBytes > 0 Then
+            rawJSON = BinaryToString(Request.BinaryRead(Request.TotalBytes))
+        End If
 
+        If rawJSON = "" Then
+            Response.Write "{""success"":false,""message"":""JSON vazio""}"
+            Response.End
+        End If
 
+        Set objJSON = ParseJSON(rawJSON)
+        If objJSON Is Nothing Then
+            Response.Write "{""success"":false,""message"":""JSON inválido""}"
+            Response.End
+        End If
+
+        If action = "add" Then
+            nome = objJSON.nome
+            descricao = objJSON.descricao
+            preco = CDbl(objJSON.preco)
+            estoque = CInt(objJSON.estoque)
+
+            produtoId = CriarProduto(nome, descricao, preco, estoque)
+
+            Response.Write "{""success"":true,""NovoProdutoID"":" & produtoId & "}"
+
+        ElseIf action = "update" Then
+            produtoId = CLng(objJSON.produtoId)
+            nome = objJSON.nome
+            descricao = objJSON.descricao
+            preco = CDbl(objJSON.preco)
+            estoque = CInt(objJSON.estoque)
+
+            Call AtualizarProduto(produtoId, nome, descricao, preco, estoque)
+            Response.Write "{""success"":true,""message"":""Produto atualizado""}"
+
+        ElseIf action = "delete" Then
+            produtoId = CLng(objJSON.produtoId)
+            Call ExcluirProduto(produtoId)
+            Response.Write "{""success"":true,""message"":""Produto excluído""}"
+
+        End If
+
+    Case Else
+        Response.Write "{""success"":false,""message"":""Ação inválida""}"
+
+End Select
 
 conDB.Close
 %>

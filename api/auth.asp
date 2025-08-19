@@ -1,165 +1,73 @@
 <%@ Language="VBScript" %>
 <!--#include virtual="/includes/conexao.asp" -->
-<!--#include virtual="/includes/geraToken.asp" -->
 <!--#include virtual="/includes/json.asp" -->
+<!--#include virtual="/includes/geraToken.asp" -->
+<!--#include virtual="/includes/validaTokenApi.asp" -->
 
 <%
-Dim action, nome, email, senhahash, rs, cmd, sql, token, rawJSON, objJSON
+Dim action
 action = Request("action")
-token  = Request("token") ' pode vir via querystring ou header
-
- Function JsonEscape(str)
-            str = Replace(str, "\", "\\")
-            str = Replace(str, """", "\""")
-            str = Replace(str, vbCrLf, "")
-            str = Replace(str, vbCr, "")
-            str = Replace(str, vbLf, "")
-            JsonEscape = str
-        End Function
-
-' ============================
-' REGISTRAR USUÁRIO
-' ============================
-If action = "register" Then
-
-    
-    rawJSON = BinaryToString(Request.BinaryRead(Request.TotalBytes))
-    Set objJSON = ParseJSON(rawJSON)
-
-    ' Extrair campos do JSON com tratamento de erro
-    If IsObject(objJSON) Then
-        On Error Resume Next
-        nome = objJSON.nome
-        If Err.Number <> 0 Then nome = ""
-        Err.Clear
-
-        email = objJSON.email
-        If Err.Number <> 0 Then email = ""
-        Err.Clear
-
-        senhahash = objJSON.senhahash
-        If Err.Number <> 0 Then senhahash = ""
-        Err.Clear
-        On Error GoTo 0
-    Else
-        Response.Status = "400 Bad Request"
-        Response.Write "{""success"":false,""message"":""JSON inválido ou vazio.""}"
-        Response.End
-    End If
-
-    ' Validação
-    If nome = "" Or email = "" Or senhahash = "" Then
-        Response.Write "{""success"":false,""message"":""Todos os campos são obrigatórios.""}"
-        Response.End
-    End If
-
-    ' Inserir usuário via procedure
-    Set cmd = Server.CreateObject("ADODB.Command")
-    cmd.ActiveConnection = conDB
-    cmd.CommandType = 4 ' adCmdStoredProc
-    cmd.CommandText = "spRegistrarUsuario"
-    cmd.Parameters.Append cmd.CreateParameter("@Nome", 200, 1, 100, nome)
-    cmd.Parameters.Append cmd.CreateParameter("@Email", 200, 1, 150, email)
-    cmd.Parameters.Append cmd.CreateParameter("@SenhaHash", 200, 1, 200, senhahash)
-    cmd.Execute
-    Set cmd = Nothing
-
-    ' Gerar token simples
-    token = GerarToken()
-
-    ' Atualizar token no banco
-    sql = "UPDATE Usuarios SET Token='" & Replace(token,"'","''") & "' WHERE Email='" & Replace(email,"'","''") & "'"
-    conDB.Execute sql
-
-    ' Retornar JSON
-    Response.ContentType = "application/json"
-    Response.Write "{""success"":true,""message"":""Registro realizado!"",""token"":""" & token & """}"
 
 
-
-
-' ============================
-' LOGIN
-' ============================
-ElseIf action = "login" Then
-    rawJSON = BinaryToString(Request.BinaryRead(Request.TotalBytes))
-    Set objJSON = ParseJSON(rawJSON)
-
-    ' Extrair campos do JSON com tratamento de erro
-    If IsObject(objJSON) Then
-        On Error Resume Next
-        nome = objJSON.nome
-        If Err.Number <> 0 Then nome = ""
-        Err.Clear
-
-        senhahash = objJSON.senhahash
-        If Err.Number <> 0 Then senhahash = ""
-        Err.Clear
-        On Error GoTo 0
-
-    Else
-        Response.Status = "400 Bad Request"
-        Response.Write "{""success"":false,""message"":""JSON inválido ou vazio.""}"
-        Response.End
-    End If
-
-    ' Verifica se os campos foram enviados
-    If nome = "" Or senhahash = "" Then
-        Response.Status = "400 Bad Request"
-        Response.Write "{""success"":false,""message"":""Nome e senha obrigatórios.""}"
-        Response.End
-    End If
-
-    ' Consulta no banco usando a procedure
+' =========================
+' Função: registrar usuário
+' =========================
+Function RegistrarUsuario(nome, email, senhaHash)
+    Dim cmd
     Set cmd = Server.CreateObject("ADODB.Command")
     cmd.ActiveConnection = conDB
     cmd.CommandType = 4 ' Stored Procedure
-    cmd.CommandText = "spLoginUsuario"
-
+    cmd.CommandText = "spRegistrarUsuario"
     cmd.Parameters.Append cmd.CreateParameter("@Nome", 200, 1, 100, nome)
-    cmd.Parameters.Append cmd.CreateParameter("@SenhaHash", 200, 1, 200, senhahash)
+    cmd.Parameters.Append cmd.CreateParameter("@Email", 200, 1, 150, email)
+    cmd.Parameters.Append cmd.CreateParameter("@SenhaHash", 200, 1, 200, senhaHash)
+    cmd.Execute
+    Set cmd = Nothing
+End Function
+
+' =========================
+' Função: login usuário
+' =========================
+Function LoginUsuario(nome, senhaHash)
+    Dim cmd, rs
+    Set cmd = Server.CreateObject("ADODB.Command")
+    cmd.ActiveConnection = conDB
+    cmd.CommandType = 4
+    cmd.CommandText = "spLoginUsuario"
+    cmd.Parameters.Append cmd.CreateParameter("@Nome", 200, 1, 100, nome)
+    cmd.Parameters.Append cmd.CreateParameter("@SenhaHash", 200, 1, 200, senhaHash)
 
     Set rs = cmd.Execute
 
     If Not rs.EOF Then
-        ' Usuário válido → gerar token simples
-        token = rs("Token") ' ou use GerarToken(nome, rs("Email")) se quiser criar um novo token   
-
-        Response.ContentType = "application/json"
-        Response.Write "{""success"":true,""token"":""" & JsonEscape(token) & """,""tipoUsuario"":""" & JsonEscape(rs("TipoUsuario")) & """}"
-        Response.End
-
+        LoginUsuario = rs("Token")
     Else
-        Response.Status = "401 Unauthorized"
-        Response.Write "{""success"":false,""message"":""Credenciais inválidas.""}"
-        Response.End
+        LoginUsuario = ""
     End If
 
     rs.Close
     Set rs = Nothing
     Set cmd = Nothing
+End Function
 
-
-' ============================
-' LISTAR USUÁRIOS
-' ============================
-ElseIf action = "list" Then
+' =========================
+' Função: listar usuários
+' =========================
+Function ListarUsuarios()
+    Dim cmd, rs, json, primeiro
     Set cmd = Server.CreateObject("ADODB.Command")
     cmd.ActiveConnection = conDB
-    cmd.CommandType = 4 ' adCmdStoredProc
+    cmd.CommandType = 4
     cmd.CommandText = "spListarUsuarios"
-    
     Set rs = cmd.Execute
 
-    Response.Write "["
-    Dim primeiro
+    json = "["
     primeiro = True
 
     Do Until rs.EOF
-        If Not primeiro Then Response.Write ","
+        If Not primeiro Then json = json & ","
         primeiro = False
-
-        Response.Write "{""UserID"": " & rs("Id") & _
+        json = json & "{""UserID"": " & rs("Id") & _
                        ", ""Nome"": """ & Replace(rs("Nome"), """", "\""") & """" & _
                        ", ""Email"": """ & Replace(rs("Email"), """", "\""") & """" & _
                        ", ""TipoUsuario"": """ & rs("TipoUsuario") & """" & _
@@ -167,20 +75,86 @@ ElseIf action = "list" Then
         rs.MoveNext
     Loop
 
-    Response.Write "]"
+    json = json & "]"
 
     rs.Close
     Set rs = Nothing
     Set cmd = Nothing
 
-' ============================
-' AÇÃO INVÁLIDA
-' ============================
-Else
+    ListarUsuarios = json
+End Function
 
-    Response.Status = "400 Bad Request"
-    Response.Write "{""error"": ""Ação inválida""}"
-End If
+' =========================
+' Dispatcher das ações
+' =========================
+Dim rawJSON, objJSON, nome, email, senhaHash, token
+
+Select Case action
+    Case "register", "login"
+        ' Só ler JSON se for POST
+        If Request.ServerVariables("REQUEST_METHOD") <> "POST" Then
+            Response.Status = "400 Bad Request"
+            Response.Write "{""success"":false,""message"":""Método inválido""}"
+            Response.End
+        End If
+
+        rawJSON = BinaryToString(Request.BinaryRead(Request.TotalBytes))
+        If rawJSON = "" Then
+            Response.Status = "400 Bad Request"
+            Response.Write "{""success"":false,""message"":""JSON vazio""}"
+            Response.End
+        End If
+
+        Set objJSON = ParseJSON(rawJSON)
+
+        If action = "register" Then
+            nome = objJSON.nome
+            email = objJSON.email
+            senhaHash = objJSON.senhahash
+
+            If nome = "" Or email = "" Or senhaHash = "" Then
+                Response.Status = "400 Bad Request"
+                Response.Write "{""success"":false,""message"":""Todos os campos obrigatórios""}"
+                Response.End
+            End If
+
+            ' Registrar usuário
+            Call RegistrarUsuario(nome,email,senhaHash)
+
+            ' Gerar token e atualizar banco
+            token = GerarToken()
+            conDB.Execute "UPDATE Usuarios SET Token='" & Replace(token,"'","''") & "' WHERE Email='" & Replace(email,"'","''") & "'"
+
+            Response.ContentType = "application/json"
+            Response.Write "{""success"":true,""token"":""" & token & """}"
+
+        ElseIf action = "login" Then
+            nome = objJSON.nome
+            senhaHash = objJSON.senhahash
+
+            token = LoginUsuario(nome,senhaHash)
+
+            If token = "" Then
+                Response.Status = "401 Unauthorized"
+                Response.Write "{""success"":false,""message"":""Credenciais inválidas""}"
+                Response.End
+            End If
+
+            Response.ContentType = "application/json"
+            Response.Write "{""success"":true,""token"":""" & token & """}"
+
+        End If
+
+    Case "list"
+         If Not ValidarToken() Then Response.End
+
+        Response.ContentType = "application/json"
+        Response.Write ListarUsuarios()
+
+    Case Else
+        Response.Status = "400 Bad Request"
+        Response.Write "{""success"":false,""message"":""Ação inválida""}"
+End Select
 
 conDB.Close
 %>

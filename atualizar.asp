@@ -8,29 +8,6 @@
     <meta charset="utf-8">
     <title>Dashboard - Produtos</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        /* Remove scroll da página e ocupa altura total */
-        html, body {
-            height: 100%;
-            margin: 0;
-            overflow: hidden; /* remove scroll do body */
-        }
-
-        /* Conteúdo principal ocupa toda a altura restante */
-        .conteudo-principal {
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-            padding: 1rem;
-            box-sizing: border-box;
-        }
-
-        /* Card da tabela com scroll interno e limite ao final da tela */
-        .card-body.tabela-scroll {
-            max-height: calc(100vh - 550px); /* ajusta de acordo com altura do form + header */
-            overflow-y: auto;
-        }
-    </style>
 </head>
 <body>
 <div class="d-flex">
@@ -38,20 +15,20 @@
     <!--#include file="includes/sidebar.asp" -->
 
     <!-- Conteúdo principal -->
-    <div class="flex-grow-1 conteudo-principal">
+    <div class="flex-grow-1 p-4">
+        <!-- Container onde formulário e tabela serão renderizados -->
         <div id="conteudoProdutos"></div>
 
         <!-- jQuery -->
         <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
-        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
         <script>
         (async function() {
             const container = document.getElementById("conteudoProdutos");
 
-            // ===========================
-            // 1️⃣ Formulário
-            // ===========================
+            // ============================
+            // 1️⃣ Criação do formulário
+            // ============================
             const formCard = document.createElement("div");
             formCard.className = "card shadow-sm mb-4";
             formCard.innerHTML = `
@@ -91,9 +68,9 @@
             `;
             container.appendChild(formCard);
 
-            // ===========================
-            // 2️⃣ Tabela
-            // ===========================
+            // ============================
+            // 2️⃣ Criação da tabela
+            // ============================
             const tabelaCard = document.createElement("div");
             tabelaCard.className = "card shadow-sm";
             tabelaCard.innerHTML = `
@@ -101,7 +78,7 @@
                     <h4 class="mb-0">Produtos</h4>
                     <input type="text" id="buscaProduto" placeholder="Buscar produto..." class="form-control mt-2" />
                 </div>
-                <div class="card-body p-0 tabela-scroll">
+                <div class="card-body p-0">
                     <table class="table table-striped table-hover table-bordered text-center mb-0">
                         <thead class="table-dark">
                             <tr>
@@ -125,10 +102,13 @@
 
             let produtos = [];
 
+            // ============================
+            // 3️⃣ Função para renderizar tabela
+            // ============================
             function renderTabela(filtro = "") {
                 tbody.innerHTML = "";
-                const produtosFiltrados = filtro
-                    ? produtos.filter(p => p.Nome.toLowerCase().includes(filtro.toLowerCase()))
+                const produtosFiltrados = filtro 
+                    ? produtos.filter(p => p.Nome.toLowerCase().includes(filtro.toLowerCase())) 
                     : produtos;
 
                 produtosFiltrados.forEach(p => {
@@ -145,6 +125,9 @@
                 });
             }
 
+            // ============================
+            // 4️⃣ Carregar produtos da API
+            // ============================
             async function carregarProdutos() {
                 try {
                     const resp = await fetch("/api/produtos.asp?action=list&token=token_admin");
@@ -158,11 +141,134 @@
             inputBusca.addEventListener("input", () => renderTabela(inputBusca.value));
             carregarProdutos();
 
-            // Adicionar, atualizar, limpar, editar e excluir continuam iguais
-            // (mantive seu código original de manipulação de formulário e botões)
+            // ============================
+            // 5️⃣ Botões Adicionar / Atualizar / Limpar
+            // ============================
+            const btnAdicionar = $('#btnAdicionar');
+            const btnAtualizar = $('#btnAtualizar');
+            const btnLimpar = $('button[type="reset"]');
+
+            btnAtualizar.prop('disabled', true);
+
+            // Limpar formulário
+            btnLimpar.on('click', function() {
+                btnAdicionar.prop('disabled', false);
+                btnAtualizar.prop('disabled', true);
+                $('#prodMsg').html('');
+            });
+
+            // ============================
+            // Botão Editar
+            // ============================
+            $(document).on('click', '.btn-editar', function() {
+                const linha = $(this).closest('tr');
+                const id = linha.find('td:first').text();
+                const produto = produtos.find(p => p.ProdutoID == id);
+
+                if (produto) {
+                    $('#produtoId').val(produto.ProdutoID);
+                    $('#nome').val(produto.Nome);
+                    $('#preco').val(produto.Preco);
+                    $('#descricao').val(produto.Descricao ?? "");
+                    $('#estoque').val(produto.Estoque ?? 0);
+
+                    btnAdicionar.prop('disabled', true);
+                    btnAtualizar.prop('disabled', false);
+                }
+            });
+
+            // ============================
+            // Função para excluir produto
+            // ============================
+            function excluirProduto(produtoId) {
+                if (!confirm("Deseja realmente excluir este produto?")) return;
+
+                $.ajax({
+                    url: "http://localhost:8085/api/produtos.asp?action=delete",
+                    type: "POST",
+                    contentType: "application/json",
+                    data: JSON.stringify({ produtoId: produtoId }),
+                    success: function(res) {
+                        console.log("Produto deletado:", res);
+                        alert(res.message || "Produto deletado com sucesso!");
+                        carregarProdutos();
+                    },
+                    error: function(xhr) {
+                        console.error("Erro ao deletar produto:", xhr);
+                        alert("Erro ao deletar produto: " + xhr.responseText);
+                    }
+                });
+            }
+
+            $(document).on('click', '.btn-excluir', function() {
+                const linha = $(this).closest('tr');
+                const id = linha.find('td:first').text();
+                excluirProduto(parseInt(id));
+            });
+
+            // ============================
+            // Submissão do formulário
+            // ============================
+            let acaoSelecionada = null;
+
+            $('#produtoForm button[type="submit"]').on('click', function () {
+                acaoSelecionada = $(this).data('action'); // "add" ou "update"
+            });
+
+            form.submit(async function(e) {
+                e.preventDefault();
+
+                const data = {
+                    nome: $('#nome').val(),
+                    descricao: $('#descricao').val(),
+                    preco: parseFloat($('#preco').val().replace(",", ".")),
+                    estoque: parseInt($('#estoque').val())
+                };
+
+                if (acaoSelecionada === 'add') {
+                    try {
+                        const res = await $.ajax({
+                            url: 'http://localhost:8085/api/produtos.asp?action=add',
+                            type: 'POST',
+                            contentType: 'application/json',
+                            data: JSON.stringify(data)
+                        });
+                        $('#prodMsg').html('<div class="alert alert-success">' + (res.message || 'Produto criado!') + ' ID: ' + (res.NovoProdutoID || '') + '</div>');
+                        form[0].reset();
+                        carregarProdutos();
+                    } catch (err) {
+                        console.error("Erro ao cadastrar produto:", err);
+                        $('#prodMsg').html('<div class="alert alert-danger">Erro ao cadastrar produto</div>');
+                    }
+                } else if (acaoSelecionada === 'update') {
+                    data.produtoId = parseInt($('#produtoId').val());
+                    try {
+                        const res = await $.ajax({
+                            url: 'http://localhost:8085/api/produtos.asp?action=update',
+                            type: 'POST',
+                            contentType: 'application/json',
+                            data: JSON.stringify(data)
+                        });
+                        $('#prodMsg').html('<div class="alert alert-success">' + (res.message || 'Produto atualizado!') + '</div>');
+                        form[0].reset();
+                        btnAdicionar.prop('disabled', false);
+                        btnAtualizar.prop('disabled', true);
+                        carregarProdutos();
+                    } catch (err) {
+                        console.error("Erro ao atualizar produto:", err);
+                        $('#prodMsg').html('<div class="alert alert-danger">Erro ao atualizar produto</div>');
+                    }
+                }
+
+                acaoSelecionada = null;
+            });
+
         })();
         </script>
+
     </div>
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

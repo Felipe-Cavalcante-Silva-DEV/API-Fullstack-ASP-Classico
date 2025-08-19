@@ -6,7 +6,7 @@
 Response.ContentType = "application/json"
 
 ' ============================
-' Chave única de verificação da API
+' Chave única de verificação
 ' ============================
 Const CHAVE_SECRETA = "MINHA_CHAVE_EXTERNA"
 Dim chaveCliente
@@ -19,6 +19,12 @@ If chaveCliente <> CHAVE_SECRETA Then
 End If
 
 ' ============================
+' Variáveis globais
+' ============================
+Dim action, rawJSON, objJSON, produtoId, nome, descricao, preco, estoque
+action = Request("action")
+
+' ============================
 ' Função auxiliar para escapar JSON
 ' ============================
 Function EscapeJSON(str)
@@ -26,105 +32,114 @@ Function EscapeJSON(str)
 End Function
 
 ' ============================
-' Detecta método HTTP
+' Funções
 ' ============================
-Dim metodo
-metodo = Request.ServerVariables("REQUEST_METHOD")
 
-If metodo = "GET" Then
-    ' ============================
-    ' Listar produtos
-    ' ============================
-    Dim cmd, rs
+Function ListarProdutos()
+    Dim cmd, rs, json, primeiro
     Set cmd = Server.CreateObject("ADODB.Command")
     cmd.ActiveConnection = conDB
     cmd.CommandType = 4
     cmd.CommandText = "spListarProdutos"
     Set rs = cmd.Execute
 
-    Response.Write "["
+    json = "["
+    primeiro = True
+
     Do Until rs.EOF
-        Response.Write "{""ProdutoID"": " & rs("Id") & _
+        If Not primeiro Then json = json & ","
+        primeiro = False
+
+        json = json & "{""ProdutoID"": " & rs("Id") & _
                        ", ""Nome"": """ & EscapeJSON(rs("Nome")) & """" & _
                        ", ""Descricao"": """ & EscapeJSON(rs("Descricao")) & """" & _
-                       ", ""Preco"": " & Replace(rs("Preco"), ",", ".") & _
+                       ", ""Preco"": " & Replace(CStr(rs("Preco")), ",", ".") & _
                        ", ""Estoque"": " & rs("Estoque") & "}"
         rs.MoveNext
-        If Not rs.EOF Then Response.Write ","
     Loop
-    Response.Write "]"
+
+    json = json & "]"
 
     rs.Close
     Set rs = Nothing
     Set cmd = Nothing
 
-ElseIf metodo = "POST" Then
-    ' ============================
-    ' Adicionar produto
-    ' ============================
-    Dim rawJSON
-    rawJSON = ""
-    If Request.TotalBytes > 0 Then
-        rawJSON = BinaryToString(Request.BinaryRead(Request.TotalBytes))
+    ListarProdutos = json
+End Function
+
+Function CriarProduto(nome, descricao, preco, estoque)
+    Dim cmd, rs, novoId
+    Set cmd = Server.CreateObject("ADODB.Command")
+    cmd.ActiveConnection = conDB
+    cmd.CommandType = 4
+    cmd.CommandText = "spCriarProduto"
+    cmd.Parameters.Append cmd.CreateParameter("@Nome", 200, 1, 150, nome)
+    cmd.Parameters.Append cmd.CreateParameter("@Descricao", 200, 1, 500, descricao)
+    cmd.Parameters.Append cmd.CreateParameter("@Preco", 5, 1, , preco)
+    cmd.Parameters.Append cmd.CreateParameter("@Estoque", 3, 1, , estoque)
+
+    Set rs = cmd.Execute
+
+    If Not rs.EOF Then
+        novoId = rs("NovoProdutoID")
+    Else
+        novoId = 0
     End If
 
-    If rawJSON = "" Then
-        Response.Write "{""success"":false,""message"":""Nenhum JSON enviado""}"
-        Response.End
-    End If
+    rs.Close
+    Set rs = Nothing
+    Set cmd = Nothing
 
-    Dim objJSON
-    Set objJSON = Nothing
-    On Error Resume Next
-    Set objJSON = ParseJSON(rawJSON)
-    If Err.Number <> 0 Or objJSON Is Nothing Then
-        Response.Write "{""success"":false,""message"":""JSON inválido: " & Err.Description & """}"
-        Response.End
-    End If
-    On Error GoTo 0
+    CriarProduto = novoId
+End Function
 
-    ' Extrair campos
-    Dim nome, descricao, preco, estoque
-    On Error Resume Next
-    nome = objJSON.nome
-    descricao = objJSON.descricao
-    preco = CDbl(objJSON.preco)
-    estoque = CInt(objJSON.estoque)
-    If Err.Number <> 0 Then
-        Response.Write "{""success"":false,""message"":""Erro ao extrair campos do JSON: " & Err.Description & """}"
-        Response.End
-    End If
-    On Error GoTo 0
+' ============================
+' Dispatcher das ações
+' ============================
 
-    ' Validação básica
-    If nome = "" Or preco <= 0 Then
-        Response.Write "{""success"":false,""message"":""Campos obrigatórios ausentes ou inválidos""}"
-        Response.End
-    End If
+Select Case action
 
-    ' Inserir produto via procedure
-    Dim cmdAdd, rsAdd, novoId
-    Set cmdAdd = Server.CreateObject("ADODB.Command")
-    cmdAdd.ActiveConnection = conDB
-    cmdAdd.CommandType = 4
-    cmdAdd.CommandText = "spCriarProduto"
-    cmdAdd.Parameters.Append cmdAdd.CreateParameter("@Nome", 200, 1, 150, nome)
-    cmdAdd.Parameters.Append cmdAdd.CreateParameter("@Descricao", 200, 1, 500, descricao)
-    cmdAdd.Parameters.Append cmdAdd.CreateParameter("@Preco", 5, 1, , preco)
-    cmdAdd.Parameters.Append cmdAdd.CreateParameter("@Estoque", 3, 1, , estoque)
+    Case "list"
+        Response.Write ListarProdutos()
 
-    Set rsAdd = cmdAdd.Execute
+    Case "add"
+        rawJSON = ""
+        If Request.TotalBytes > 0 Then
+            rawJSON = BinaryToString(Request.BinaryRead(Request.TotalBytes))
+        End If
 
-    novoId = 0
-    If Not rsAdd.EOF Then novoId = rsAdd("NovoProdutoID")
+        If rawJSON = "" Then
+            Response.Write "{""success"":false,""message"":""Nenhum JSON enviado""}"
+            Response.End
+        End If
 
-    Response.Write "{""success"":true,""message"":""Produto criado com sucesso"",""NovoProdutoID"":" & novoId & "}"
+        On Error Resume Next
+        Set objJSON = ParseJSON(rawJSON)
+        If Err.Number <> 0 Or objJSON Is Nothing Then
+            Response.Write "{""success"":false,""message"":""JSON inválido: " & Err.Description & """}"
+            Response.End
+        End If
+        On Error GoTo 0
 
-    Set rsAdd = Nothing
-    Set cmdAdd = Nothing
+        nome = objJSON.nome
+        descricao = objJSON.descricao
+        preco = CDbl(objJSON.preco)
+        estoque = CInt(objJSON.estoque)
 
-Else
-    Response.Status = "405 Method Not Allowed"
-    Response.Write "{""success"":false,""message"":""Método HTTP não permitido""}"
-End If
+        If nome = "" Or preco <= 0 Then
+            Response.Write "{""success"":false,""message"":""Campos obrigatórios ausentes ou inválidos""}"
+            Response.End
+        End If
+
+        produtoId = CriarProduto(nome, descricao, preco, estoque)
+
+        Response.Write "{""success"":true,""message"":""Produto criado com sucesso"",""NovoProdutoID"":" & produtoId & "}"
+
+    Case Else
+        Response.Status = "400 Bad Request"
+        Response.Write "{""success"":false,""message"":""Ação inválida""}"
+
+End Select
+
+conDB.Close
 %>
