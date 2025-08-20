@@ -197,7 +197,7 @@
         if(acaoSelecionada === 'add') {
             try {
                 await $.ajax({
-                    url: `/api/produtos.asp?action=add&token=token_admin`,
+                    url: API_CONNECTION + `/api/produtos.asp?action=add&token=token_admin`,
                     type: 'POST',
                     contentType: 'application/json',
                     data: JSON.stringify(data)

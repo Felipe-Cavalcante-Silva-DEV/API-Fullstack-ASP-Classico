@@ -98,7 +98,7 @@
 
             const carregarUsuarios = async () => {
                 try {
-                    const resp = await fetch("http://localhost:8083/api/auth.asp?action=list&token=token_admin");
+                    const resp = await fetch(API_CONNECTION + "api/auth.asp?action=list&token=token_admin");
                     usuarios = await resp.json();
 
                     container.innerHTML = `

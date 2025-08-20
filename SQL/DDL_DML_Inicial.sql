@@ -22,8 +22,6 @@
     );
     GO
 
-
-
     -- Produtos
     CREATE TABLE Produtos (
         Id INT IDENTITY(1,1) PRIMARY KEY,
@@ -44,11 +42,6 @@
         DataLog DATETIME DEFAULT GETDATE()
     );
     GO
-
-
-
- 
-
 
     
     -- =========================

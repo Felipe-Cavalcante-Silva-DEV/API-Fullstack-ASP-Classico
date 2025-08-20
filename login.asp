@@ -1,3 +1,4 @@
+
 <!-- #include virtual="includes/conexao.inc" -->
 <!-- #include virtual="includes/validaTokenApi.inc" -->
 <!-- #include virtual="includes/appsettings.inc" -->
@@ -92,7 +93,7 @@ $('#registerForm').submit(function(e) {
     };
 
     $.ajax({
-        url: 'http://localhost:8083/api/auth.asp?action=register',
+        url: API_CONNECTION + 'api/auth.asp?action=register',
         type: 'POST',
         contentType: 'application/json',
         data: JSON.stringify(data),
