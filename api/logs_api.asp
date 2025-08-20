@@ -1,5 +1,6 @@
 <%@ LANGUAGE="VBSCRIPT" %>
 <!--#include virtual="/includes/conexao.asp" -->
+<!--#include virtual="/includes/validaToken.asp" -->
 
 <%
 Response.ContentType = "application/json"

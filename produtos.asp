@@ -54,6 +54,9 @@
 
             let produtos = []; // armazena produtos em memória
 
+            const itensPorPagina = 18;
+            let paginaAtual = 1;
+
             const renderTabela = (filtro = "") => {
                 const tbody = document.getElementById("produtosBody");
                 tbody.innerHTML = "";
@@ -62,7 +65,11 @@
                     ? produtos.filter(p => p.Nome.toLowerCase().includes(filtro.toLowerCase()))
                     : produtos;
 
-                produtosFiltrados.forEach(p => {
+                const inicio = (paginaAtual - 1) * itensPorPagina;
+                const fim = inicio + itensPorPagina;
+                const paginaProdutos = produtosFiltrados.slice(inicio, fim);
+
+                paginaProdutos.forEach(p => {
                     const tr = document.createElement("tr");
                     tr.innerHTML = `
                         <td>${p.ProdutoID}</td>
@@ -72,8 +79,30 @@
                     `;
                     tbody.appendChild(tr);
                 });
+
+                // Atualiza botões de paginação
+                renderPaginacao(produtosFiltrados.length);
             };
 
+            const renderPaginacao = (totalItens) => {
+                const containerPaginacao = document.getElementById("paginacao");
+                if (!containerPaginacao) return;
+
+                containerPaginacao.innerHTML = "";
+
+                const totalPaginas = Math.ceil(totalItens / itensPorPagina);
+
+                for (let i = 1; i <= totalPaginas; i++) {
+                    const btn = document.createElement("button");
+                    btn.textContent = i;
+                    btn.className = i === paginaAtual ? "btn btn-primary m-1" : "btn btn-outline-primary m-1";
+                    btn.addEventListener("click", () => {
+                        paginaAtual = i;
+                        renderTabela(document.getElementById("buscaProduto").value);
+                    });
+                    containerPaginacao.appendChild(btn);
+                }
+            };
             const carregarProdutos = async () => {
                 try {
                     const resp = await fetch("http://localhost:8085/api/produtos.asp?action=list&token=token_admin");
@@ -97,9 +126,13 @@
                                         </tr>
                                     </thead>
                                     <tbody id="produtosBody"></tbody>
+
                                 </table>
-                            </div>
-                        </div>
+                        <div id="paginacao" class="text-center my-2"></div>
+
+
+                            </div>                                                
+                       </div>
 
                     `;
 

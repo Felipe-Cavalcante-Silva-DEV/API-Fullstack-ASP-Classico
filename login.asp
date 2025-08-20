@@ -63,13 +63,11 @@
                 if (response.success) {
                     // Salva token e tipoUsuario na sessão
                     sessionStorage.setItem('token', response.token);
-                    sessionStorage.setItem('tipoUsuario', response.tipoUsuario);
 
-                    $('#loginMsg').html('<div class="alert alert-success">Login realizado com sucesso! Tipo: ' + 
-                        (response.tipoUsuario || '') + '</div>');
+                    $('#loginMsg').html('<div class="alert alert-success">Login realizado com sucesso!'  + '</div>');
 
                     setTimeout(function() {
-                        window.location.href = 'index.asp?token=' + encodeURIComponent(response.token);
+                        window.location.href = 'produtos.asp?token=' + encodeURIComponent(response.token);
                     }, 500);
                 } else {
                     $('#loginMsg').html('<div class="alert alert-danger">' + (response.message || 'Login inválido') + '</div>');

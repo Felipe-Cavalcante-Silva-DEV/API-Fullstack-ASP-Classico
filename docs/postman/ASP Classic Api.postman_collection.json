@@ -1,0 +1,590 @@
+{
+	"info": {
+		"_postman_id": "c7a04c3b-1622-4bbb-a46e-5ba60833c446",
+		"name": "ASP Classic Api",
+		"description": "Coleção para testar os endpoints CRUD da API de produtos em ASP Clássico. Permite listar, criar, atualizar e deletar produtos, usando **token via query string**. Inclui variáveis de ambiente (`base_url`, `token`, `ultimo_produto_id`) para facilitar testes e execução em diferentes servidores.\n\n**Endpoints:**\n\n- Listar Produtos (`GET`)\n    \n- Criar Produto (`POST`)\n    \n- Atualizar Produto (`POST`)\n    \n- Deletar Produto (`POST`)\n    \n\nRespostas seguem padrão JSON com sucesso ou erro, incluindo validação de token e existência do produto.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "36154713"
+	},
+	"item": [
+		{
+			"name": "Login",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Successful POST request\", function () {",
+							"    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+							"});",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Authorization",
+						"value": "",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"Nome\": \"final\",\r\n    \"Senhahash\": \"123\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base_url}}/api/auth.asp?action=login",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"auth.asp"
+					],
+					"query": [
+						{
+							"key": "action",
+							"value": "login"
+						}
+					]
+				},
+				"description": "Realiza o login e retorna o token necessário para navegar no sistema ou fazer requisições de algumas rotas que precisam de verificação de login."
+			},
+			"response": []
+		},
+		{
+			"name": "Register",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Successful POST request\", function () {\r",
+							"    pm.expect(pm.response.code).to.be.oneOf([200, 201]);\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"Nome\": \"teste\",\r\n    \"Email\": \"run@teste.com\",\r\n    \"Senhahash\": \"123\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base_url}}/api/auth.asp?action=register",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"auth.asp"
+					],
+					"query": [
+						{
+							"key": "action",
+							"value": "register"
+						}
+					]
+				},
+				"description": "Realiza o cadastro de um usuário no banco de dados."
+			},
+			"response": []
+		},
+		{
+			"name": "User List",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Successful POST request\", function () {\r",
+							"    pm.expect(pm.response.code).to.be.oneOf([200, 201]);\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/api/auth.asp?action=list&token=apiteste",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"auth.asp"
+					],
+					"query": [
+						{
+							"key": "action",
+							"value": "list"
+						},
+						{
+							"key": "token",
+							"value": "apiteste"
+						}
+					]
+				},
+				"description": "Retorna todos os usuarios cadastrados no banco de dados."
+			},
+			"response": []
+		},
+		{
+			"name": "Logs list",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Successful POST request\", function () {\r",
+							"    pm.expect(pm.response.code).to.be.oneOf([200, 201]);\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/api/logs_api.asp?action=list&token=apiteste",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"logs_api.asp"
+					],
+					"query": [
+						{
+							"key": "action",
+							"value": "list"
+						},
+						{
+							"key": "token",
+							"value": "apiteste"
+						}
+					]
+				},
+				"description": "Retorna os logs de Delete e Update dos produtos."
+			},
+			"response": []
+		},
+		{
+			"name": "Extern Api List",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Successful POST request\", function () {\r",
+							"    pm.expect(pm.response.code).to.be.oneOf([200, 201]);\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base_url}}/api/api_externa.asp?action=list&key=MINHA_CHAVE_EXTERNA",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"api_externa.asp"
+					],
+					"query": [
+						{
+							"key": "action",
+							"value": "list"
+						},
+						{
+							"key": "key",
+							"value": "MINHA_CHAVE_EXTERNA"
+						}
+					]
+				},
+				"description": "Retorna todos os produtos cadastrados no api externa."
+			},
+			"response": []
+		},
+		{
+			"name": "Extern Api Add",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Successful POST request\", function () {\r",
+							"    pm.expect(pm.response.code).to.be.oneOf([200, 201]);\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"nome\": \"Teste externo\",\r\n  \"descricao\": \"Produto de teste123123\",\r\n  \"preco\": 100,\r\n  \"estoque\": 50\r\n}\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base_url}}/api/api_externa.asp?action=add&key=MINHA_CHAVE_EXTERNA",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"api_externa.asp"
+					],
+					"query": [
+						{
+							"key": "action",
+							"value": "add"
+						},
+						{
+							"key": "key",
+							"value": "MINHA_CHAVE_EXTERNA"
+						}
+					]
+				},
+				"description": "Cria um novo produto no banco vindos da api externa."
+			},
+			"response": []
+		},
+		{
+			"name": "Internal Prods List",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Successful POST request\", function () {\r",
+							"    pm.expect(pm.response.code).to.be.oneOf([200, 201]);\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base_url}}/api/produtos.asp?action=list&token=apiteste",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"produtos.asp"
+					],
+					"query": [
+						{
+							"key": "action",
+							"value": "list"
+						},
+						{
+							"key": "token",
+							"value": "apiteste"
+						}
+					]
+				},
+				"description": "Retorna todos os produtos cadastrados no banco de dados."
+			},
+			"response": []
+		},
+		{
+			"name": "Internal Prods Delete",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Successful POST request\", function () {\r",
+							"    pm.expect(pm.response.code).to.be.oneOf([200, 201]);\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"produtoId\": 1\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base_url}}/api/produtos.asp?action=delete&token=apiteste",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"produtos.asp"
+					],
+					"query": [
+						{
+							"key": "action",
+							"value": "delete"
+						},
+						{
+							"key": "token",
+							"value": "apiteste"
+						}
+					]
+				},
+				"description": "Exclui um produto pelo ID"
+			},
+			"response": []
+		},
+		{
+			"name": "Internal Prods Update",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Successful POST request\", function () {\r",
+							"    pm.expect(pm.response.code).to.be.oneOf([200, 201]);\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "token",
+						"value": "HB8k9465ZoEwVibumhVoQucUUaGqtEx2",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"produtoId\": 50,\r\n  \"nome\": \"Produto Atualizado\",\r\n  \"descricao\": \"Descricao atualizada do produto\",\r\n  \"preco\": 150,\r\n  \"estoque\": 25\r\n}\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base_url}}/api/produtos.asp?action=update&token=apiteste",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"produtos.asp"
+					],
+					"query": [
+						{
+							"key": "action",
+							"value": "update"
+						},
+						{
+							"key": "token",
+							"value": "apiteste"
+						}
+					]
+				},
+				"description": "Atualiza um produto existente"
+			},
+			"response": []
+		},
+		{
+			"name": "Internal Prods Add",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Successful POST request\", function () {",
+							"    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+							"});",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"nome\": \"Teste Produto\",\r\n  \"descricao\": \"Produto de teste123123\",\r\n  \"preco\": 100,\r\n  \"estoque\": 50\r\n}\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base_url}}/api/produtos.asp?action=add&token=apiteste",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"produtos.asp"
+					],
+					"query": [
+						{
+							"key": "action",
+							"value": "add"
+						},
+						{
+							"key": "token",
+							"value": "apiteste"
+						}
+					]
+				},
+				"description": "Cria um novo produto no banco"
+			},
+			"response": []
+		}
+	]
+}

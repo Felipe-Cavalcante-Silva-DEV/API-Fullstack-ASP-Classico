@@ -22,7 +22,6 @@
         }
 
         .scroll-tabela {
-            max-height: calc(100vh - 120px); /* altura da tela menos header do card e padding */
             overflow-y: auto;
             padding-bottom: 1rem;
             box-sizing: border-box;
@@ -44,20 +43,69 @@
     <div class="conteudo-usuarios">
         <h2>Usuários</h2>
         <div id="conteudoUsuarios"></div>
+        <div id="paginacao" class="text-center my-2"></div>
 
         <script>
         (async function() {
             const container = document.getElementById("conteudoUsuarios");
+            const containerPaginacao = document.getElementById("paginacao");
 
-            const renderTabela = async () => {
+            let usuarios = [];
+            const itensPorPagina = 15;
+            let paginaAtual = 1;
+
+            const renderTabela = (filtro = "") => {
+                const tbody = document.getElementById("usuariosBody");
+                tbody.innerHTML = "";
+
+                const usuariosFiltrados = filtro
+                    ? usuarios.filter(u => u.Nome.toLowerCase().includes(filtro.toLowerCase()))
+                    : usuarios;
+
+                const inicio = (paginaAtual - 1) * itensPorPagina;
+                const fim = inicio + itensPorPagina;
+                const paginaUsuarios = usuariosFiltrados.slice(inicio, fim);
+
+                paginaUsuarios.forEach(u => {
+                    const tr = document.createElement("tr");
+                    tr.innerHTML = `
+                        <td>${u.UserID}</td>
+                        <td>${u.Nome}</td>
+                        <td>${u.Email}</td>
+                        <td>${u.TipoUsuario}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+
+                renderPaginacao(usuariosFiltrados.length);
+            };
+
+            const renderPaginacao = (totalItens) => {
+                containerPaginacao.innerHTML = "";
+                const totalPaginas = Math.ceil(totalItens / itensPorPagina);
+
+                for (let i = 1; i <= totalPaginas; i++) {
+                    const btn = document.createElement("button");
+                    btn.textContent = i;
+                    btn.className = i === paginaAtual ? "btn btn-primary m-1" : "btn btn-outline-primary m-1";
+                    btn.addEventListener("click", () => {
+                        paginaAtual = i;
+                        renderTabela(document.getElementById("buscaUsuario")?.value || "");
+                    });
+                    containerPaginacao.appendChild(btn);
+                }
+            };
+
+            const carregarUsuarios = async () => {
                 try {
                     const resp = await fetch("http://localhost:8085/api/auth.asp?action=list&token=token_admin");
-                    const usuarios = await resp.json();
+                    usuarios = await resp.json();
 
                     container.innerHTML = `
                         <div class="card shadow-sm">
                             <div class="card-header bg-danger text-white">
                                 <h4 class="mb-0">Usuários</h4>
+                                <input type="text" id="buscaUsuario" placeholder="Buscar usuário..." class="form-control mt-2" />
                             </div>
                             <div class="card-body p-0">
                                 <div class="scroll-tabela">
@@ -70,25 +118,19 @@
                                                 <th>Tipo</th>
                                             </tr>
                                         </thead>
-                                        <tbody id="produtosBody"></tbody>
+                                        <tbody id="usuariosBody"></tbody>
                                     </table>
                                 </div>
                             </div>
                         </div>
                     `;
 
-                    const tbody = document.getElementById("produtosBody");
-                    tbody.innerHTML = "";
+                    renderTabela();
 
-                    usuarios.forEach(u => {
-                        const tr = document.createElement("tr");
-                        tr.innerHTML = `
-                            <td>${u.UserID}</td>
-                            <td>${u.Nome}</td>
-                            <td>${u.Email}</td>
-                            <td>${u.TipoUsuario}</td>
-                        `;
-                        tbody.appendChild(tr);
+                    const inputBusca = document.getElementById("buscaUsuario");
+                    inputBusca.addEventListener("input", () => {
+                        paginaAtual = 1; // reinicia na primeira página ao filtrar
+                        renderTabela(inputBusca.value);
                     });
 
                 } catch (err) {
@@ -97,7 +139,7 @@
                 }
             };
 
-            renderTabela();
+            carregarUsuarios();
         })();
         </script>
     </div>

@@ -1,6 +1,6 @@
 <%@ LANGUAGE="VBSCRIPT" %>
 <!-- #include virtual="includes/conexao.asp" -->
-<!-- #include virtual="includes/validaToken.asp" -->
+<!-- #include virtual="includes/validaTokenApi.asp" -->
 
 <!DOCTYPE html>
 <html lang="pt-br">
@@ -8,6 +8,27 @@
     <meta charset="utf-8">
     <title>Dashboard - Produtos</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+    html, body {
+        height: 100%;
+        margin: 0;
+        overflow: hidden;
+    }
+
+    /* Scroll responsivo para a tabela externa */
+    .scroll-tabela-externos {
+        max-height: calc(100vh - 520px); /* Ajuste: altura da tela - altura do form e headers */
+        overflow-y: auto;
+        padding-bottom: 1rem;
+        box-sizing: border-box;
+    }
+
+    @media (max-width: 767px) {
+        .scroll-tabela-externos {
+            max-height: calc(100vh - 620px); /* Ajuste para telas pequenas */
+        }
+    }
+  </style>
 </head>
 <body>
 <div class="d-flex">
@@ -17,7 +38,7 @@
     <!-- Conteúdo principal -->
     <div class="flex-grow-1 p-4">
         <!-- Container onde formulário e tabela serão renderizados -->
-        <div id="conteudoProdutos"></div>
+        <div id="conteudoProdutos" style="display: flex; flex-direction: column; height: 100vh;">
 
         <!-- jQuery -->
         <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
@@ -79,20 +100,22 @@
                     <input type="text" id="buscaProduto" placeholder="Buscar produto..." class="form-control mt-2" />
                 </div>
                 <div class="card-body p-0">
-                    <table class="table table-striped table-hover table-bordered text-center mb-0">
-                        <thead class="table-dark">
-                            <tr>
-                                <th>#</th>
-                                <th>Nome</th>
-                                <th>Preço</th>
-                                <th>Estoque</th>
-                                <th>Editar</th>
-                                <th>Excluir</th>
-                            </tr>
-                        </thead>
+                    <div class="scroll-tabela" style="max-height: 400px; overflow-y: auto;">
+                        <table class="table table-striped table-hover table-bordered text-center mb-0">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>#</th>
+                                    <th>Nome</th>
+                                    <th>Preço</th>
+                                    <th>Estoque</th>
+                                    <th>Editar</th>
+                                    <th>Excluir</th>
+                                </tr>
+                            </thead>
                         <tbody id="produtosBody"></tbody>
-                    </table>
-                </div>
+                     </div>
+                </table>
+             </div>
             `;
             container.appendChild(tabelaCard);
 
@@ -184,7 +207,7 @@
                 if (!confirm("Deseja realmente excluir este produto?")) return;
 
                 $.ajax({
-                    url: "http://localhost:8085/api/produtos.asp?action=delete",
+                    url: "http://localhost:8085/api/produtos.asp?action=delete&token=token_admin",
                     type: "POST",
                     contentType: "application/json",
                     data: JSON.stringify({ produtoId: produtoId }),
@@ -228,7 +251,7 @@
                 if (acaoSelecionada === 'add') {
                     try {
                         const res = await $.ajax({
-                            url: 'http://localhost:8085/api/produtos.asp?action=add',
+                            url: 'http://localhost:8085/api/produtos.asp?action=add&token=token_admin',
                             type: 'POST',
                             contentType: 'application/json',
                             data: JSON.stringify(data)
@@ -244,7 +267,7 @@
                     data.produtoId = parseInt($('#produtoId').val());
                     try {
                         const res = await $.ajax({
-                            url: 'http://localhost:8085/api/produtos.asp?action=update',
+                            url: 'http://localhost:8085/api/produtos.asp?action=update&token=token_admin',
                             type: 'POST',
                             contentType: 'application/json',
                             data: JSON.stringify(data)

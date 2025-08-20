@@ -59,6 +59,10 @@
     ('Teclado Mecânico', 'Teclado gamer RGB', 450.00, 20),
     ('Mouse Logitech', 'Mouse sem fio', 150.00, 30);
 
+    INSERT INTO Usuarios (Nome, Email, SenhaHash, Token)
+    VALUES
+    ('Admin', 'Admin@admin.com', teste, token_admin);
+
 
 
     -- =========================
@@ -88,16 +92,21 @@
         @SenhaHash NVARCHAR(200)
     AS
     BEGIN
-        IF EXISTS (SELECT * FROM Usuarios WHERE Email = @Email)
-        BEGIN
-            RAISERROR('Email já '+@Email+ 'registrado. ', 16, 1);
-            RETURN;
-        END
+        SET NOCOUNT ON;
 
-        INSERT INTO Usuarios (Nome, Email, SenhaHash)
-        VALUES (@Nome, @Email, @SenhaHash);
+        -- Verifica se já existe usuário com o e-mail informado
+        IF EXISTS (SELECT 1 FROM Usuarios WHERE Email = @Email)
+        BEGIN
+            RAISERROR('Email já registrado.', 16, 1);
+            RETURN;
+        END;
+
+        -- Insere novo usuário
+        INSERT INTO Usuarios (Nome, Email, SenhaHash, DataCriacao)
+        VALUES (@Nome, @Email, @SenhaHash, GETDATE());
     END;
     GO
+
 
     -- Login de usuário
     CREATE OR ALTER PROCEDURE spLoginUsuario

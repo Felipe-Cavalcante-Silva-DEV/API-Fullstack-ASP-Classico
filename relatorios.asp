@@ -64,7 +64,7 @@
 
             const carregarLogs = async () => {
                 try {
-                    const resp = await fetch("http://localhost:8085/api/logs_api.asp?action=list");
+                    const resp = await fetch("http://localhost:8085/api/logs_api.asp?action=list&token=token_admin");
                     const logs = await resp.json();
 
                     container.innerHTML = `
