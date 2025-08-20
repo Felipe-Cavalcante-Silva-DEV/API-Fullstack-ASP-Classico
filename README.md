@@ -19,6 +19,7 @@ API e interface simples com Bootstrap.
 ## 📂 Estrutura do Projeto
 
     /includes
+      appsettings.inc   -> variavel da sua rota
       conexao.inc       -> Conexão com banco de dados
       validaToken.inc   -> Middleware simples para autenticação via token
       json.inc          -> Funções utilitárias para retorno JSON
@@ -53,7 +54,7 @@ git clone https://github.com/Felipe-Cavalcante-Silva-DEV/API-Fullstack-ASP-Class
     tabelas , procedures, function e triggers.
 3.  No arquivo **`includes/conexao.inc`**, configure a
     `ConnectionString` de acordo com o seu ambiente, por exemplo:
-
+    
 ``` asp
 strConn = "Provider=SQLOLEDB;Data Source=localhost;Initial Catalog=API_Fullstack;User Id=sa;Password=SUASENHA;"
 ```
@@ -74,6 +75,7 @@ Ao instalar corretamente:
     -   **Nome do site:** WebFullstrack
     -   **Caminho físico:** pasta clonada do projeto 
     -   **Porta:** 8085 (ou outra rota disponivel)
+    -   OBS: Lembrar de alterar o valor da sua porta no arquivo appsettings.inc
 4.  Clique em **Configurações Avançadas** do aplicativo e defina:
     -   **Versão do ASP:** Ativar **ASP Clássico**
     -   **Permissões de leitura e script:** Ativar
