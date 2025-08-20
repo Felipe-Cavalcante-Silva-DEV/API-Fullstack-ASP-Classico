@@ -1,91 +1,131 @@
 # API Fullstack ASP Clássico
 
-Este projeto é uma aplicação web desenvolvida com Classic ASP, utilizando banco de dados SQL Server.
-Ele serve como uma API para gerenciamento de produtos, permitindo operações de CRUD (Criar, Ler, Atualizar, Excluir) através de requisições HTTP.
+Este projeto é um exemplo de aplicação **Fullstack com ASP Clássico**,
+utilizando banco de dados SQL Server, endpoints expostos em formato de
+API e interface simples com Bootstrap.
 
-## Funcionalidades
+------------------------------------------------------------------------
 
-* **Cadastro e Edição de Produtos**: Formulário para adicionar ou editar produtos, incluindo campos como nome, preço, descrição e estoque.
-* **Listagem de Produtos**: Exibição de produtos cadastrados em uma tabela, com possibilidade de busca e filtragem.
-* **Exclusão de Produtos**: Remoção de produtos através de um botão de exclusão na tabela.
-* **Integração com API Externa**: Comunicação via AJAX para persistência e importação de dados externos.
+## 🚀 Tecnologias Utilizadas
 
-## Tecnologias Utilizadas
+-   **ASP Clássico (VBScript)**
+-   **SQL Server**
+-   **Bootstrap 5**
+-   **IIS (Internet Information Services) para hospedagem**
+-   **JavaScript (fetch API para consumo da API)**
 
-* **Frontend**: HTML, CSS, JavaScript (jQuery), Bootstrap 5
-* **Backend**: Classic ASP (VBScript)
-* **Banco de Dados**: SQL Server
-* **API Externa**: Fake Store API para importação de produtos
+------------------------------------------------------------------------
 
-## Estrutura de Diretórios
+## 📂 Estrutura do Projeto
 
+    /includes
+      conexao.inc       -> Conexão com banco de dados
+      validaToken.inc   -> Middleware simples para autenticação via token
+      json.inc          -> Funções utilitárias para retorno JSON
+
+    /api
+      produtos.asp      -> CRUD de produtos
+      auth.asp          -> Login, registro e listagem de usuários
+
+    /dashboard
+      produtos.asp      -> Tela de gestão de produtos
+      usuarios.asp      -> Tela de gestão de usuários
+
+------------------------------------------------------------------------
+
+## ⚙️ Configuração do Ambiente
+
+### 1. Pré-requisitos
+
+-   Windows 10/11 com **IIS habilitado**
+-   SQL Server instalado (pode ser Express)
+-   Acesso ao **SQL Server Management Studio (SSMS)**
+
+### 2. Clonar o repositório
+``` bash
+git clone https://github.com/Felipe-Cavalcante-Silva-DEV/API-Fullstack-ASP-Classico.git
 ```
-/api
-  /produtos.asp        # Lógica da API para produtos
-/includes
-  /conexao.asp         # Conexão com o banco de dados
-  /validaToken.asp     # Validação de token de autenticação
-  /sidebar.asp         # Componente de barra lateral
-index.asp              # Página principal da aplicação
-login.asp              # Página de login
-relatorios.asp         # Página de relatórios
-usuarios.asp           # Página de gerenciamento de usuários
+
+### 3. Configurar o banco de dados
+
+1.  Crie um banco de dados no SQL Server (exemplo: `api`).
+2.  Execute o scripts SQL fornecidos em `/SQL/DML_DLL_Inicial.sql` para criar as
+    tabelas , procedures, function e triggers.
+3.  No arquivo **`includes/conexao.inc`**, configure a
+    `ConnectionString` de acordo com o seu ambiente, por exemplo:
+
+``` asp
+strConn = "Provider=SQLOLEDB;Data Source=localhost;Initial Catalog=API_Fullstack;User Id=sa;Password=SUASENHA;"
 ```
 
-## Como Utilizar
+### 4. Configurar no IIS
 
-1. **Clonar o Repositório**
+Se o IIS não estiver instalado:
 
-   ```bash
-   git clone https://github.com/Felipe-Cavalcante-Silva-DEV/API-Fullstack-ASP-Classico.git
-   ```
+1. Abra Painel de Controle → Programas e Recursos → Ativar ou desativar recursos do Windows.
+2. Marque Internet Information Services → expanda Serviços de World Wide Web → habilite ASP e ASP Clássico.
+3. Clique em OK e aguarde a instalação.
 
-2. **Configurar o Banco de Dados**
+Ao instalar corretamente:
 
-   Crie um banco de dados no SQL Server e execute os scripts SQL necessários para criar as tabelas.
+1.  Abra o **Gerenciador do IIS**.
+2.  Clique com o botão direito em **Sites \> Adicionar Site**.
+3.  Configure:
+    -   **Nome do site:** WebFullstrack
+    -   **Caminho físico:** pasta clonada do projeto 
+    -   **Porta:** 8085 (ou outra rota disponivel)
+4.  Clique em **Configurações Avançadas** do aplicativo e defina:
+    -   **Versão do ASP:** Ativar **ASP Clássico**
+    -   **Permissões de leitura e script:** Ativar
+5.  Reinicie o site no IIS.
 
-3. **Configurar a Conexão**
+### 5. Testar no navegador
 
-   Edite o arquivo `/includes/conexao.asp` para configurar as credenciais de acesso ao banco de dados.
+Acesse:
 
-4. **Executar a Aplicação**
+    http://localhost:8085/login.asp
 
-   Hospede os arquivos em um servidor que suporte Classic ASP, como o IIS (Internet Information Services) no Windows.
+E também as rotas da API, por exemplo:
+    
+    http://localhost:8085/api/auth.asp?action=register
 
-5. **Acessar a Aplicação**
+    http://localhost:8085/api/auth.asp?action=login
 
-   Abra o navegador e acesse:
+    recupere o SEU_TOKEN e teste a coleção de rotas do postman:
+    Rota Exemplo:
+    http://localhost:8085/api/produtos.asp?action=list&token=SEU_TOKEN
 
-   ```
-   http://localhost/index.asp
-   ```
+------------------------------------------------------------------------
 
-## Contribuições
+## 🔑 Autenticação via Token
 
-Contribuições são bem-vindas! Para contribuir:
+-   O acesso às rotas da API é protegido por **token**.
+-   O token é gerado na hora da criação de um novo usuário.
+-   O arquivo `includes/validaToken.asp` valida a querystring `token`
+    enviada nas requisições.
 
-1. Faça um fork deste repositório.
+Exemplo:
 
-2. Crie uma branch para sua funcionalidade:
+    http://localhost:8085/api/produtos.asp?action=add&token=TOKEN_VALIDO
 
-   ```bash
-   git checkout -b minha-feature
-   ```
+------------------------------------------------------------------------
 
-3. Faça commit das suas alterações:
+## 🛠️ Desenvolvimento
 
-   ```bash
-   git commit -am 'Adiciona nova funcionalidade'
-   ```
+-   Para editar os arquivos, qualquer editor de texto pode ser usado (Sublime
+    text(recomendado) ou VS Code).
+-   Sempre reinicie o IIS após mudanças de configuração.
 
-4. Push para a branch:
+------------------------------------------------------------------------
 
-   ```bash
-   git push origin minha-feature
-   ```
+## 📌 Observações
 
-5. Abra um Pull Request.
+-   Este projeto é um **exemplo didático**, não devendo ser usado em
+    produção sem ajustes de segurança.
 
-## Licença
+------------------------------------------------------------------------
 
-Este projeto está licenciado sob a Licença MIT - veja o arquivo [LICENSE](LICENSE) para mais detalhes.
+## 👨‍💻 Autor
+
+**Felipe Cavalcante Silva**\
+[GitHub](https://github.com/Felipe-Cavalcante-Silva-DEV)
