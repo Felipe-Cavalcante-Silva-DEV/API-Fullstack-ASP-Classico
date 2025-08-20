@@ -1,6 +1,6 @@
 <%@ LANGUAGE="VBSCRIPT" %>
-<!-- #include virtual="includes/conexao.asp" -->
-<!-- #include virtual="includes/validaToken.asp" -->
+<!-- #include virtual="includes/conexao.inc" -->
+<!-- #include virtual="includes/validaToken.inc" -->
 
 <!DOCTYPE html>
 <html lang="pt-br">
@@ -33,7 +33,7 @@
 <body>
 <div class="d-flex">
   <!-- Sidebar -->
-  <!--#include file="includes/sidebar.asp" -->
+  <!--#include file="includes/sidebar.inc" -->
 
   <!-- Conteúdo principal -->
   <div class="flex-grow-1 p-4">

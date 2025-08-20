@@ -1,6 +1,6 @@
 <%@ LANGUAGE="VBSCRIPT" %>
-<!--#include virtual="/includes/conexao.asp" -->
-<!--#include virtual="/includes/json.asp" -->
+<!--#include virtual="/includes/conexao.inc" -->
+<!--#include virtual="/includes/json.inc" -->
 
 <%
 Response.ContentType = "application/json"

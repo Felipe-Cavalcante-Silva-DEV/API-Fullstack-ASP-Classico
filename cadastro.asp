@@ -1,6 +1,6 @@
 <%@ LANGUAGE="VBSCRIPT" %>
-<!-- #include virtual="includes/conexao.asp" -->
-<!-- #include virtual="includes/validaTokenApi.asp" -->
+<!-- #include virtual="includes/conexao.inc" -->
+<!-- #include virtual="includes/validaTokenApi.inc" -->
 
 <!DOCTYPE html>
 <html lang="pt-br">
@@ -33,7 +33,7 @@
 <body>
 <div class="d-flex">
     <!-- Inclui a sidebar -->
-    <!--#include file="includes/sidebar.asp" -->
+    <!--#include file="includes/sidebar.inc" -->
 
     <!-- Conteúdo principal -->
     <div class="flex-grow-1 p-4">
@@ -44,6 +44,7 @@
         <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
 
         <script>
+        const API_CONNECTION = "<%= API_CONNECTION %>";
         (async function() {
             const container = document.getElementById("conteudoProdutos");
 
@@ -153,7 +154,7 @@
             // ============================
             async function carregarProdutos() {
                 try {
-                    const resp = await fetch("/api/produtos.asp?action=list&token=token_admin");
+                    const resp = await fetch("http://localhost:8083/api/produtos.asp?action=list&token=token_admin");
                     produtos = await resp.json();
                     renderTabela();
                 } catch (err) {
@@ -207,7 +208,7 @@
                 if (!confirm("Deseja realmente excluir este produto?")) return;
 
                 $.ajax({
-                    url: "http://localhost:8085/api/produtos.asp?action=delete&token=token_admin",
+                    url: API_CONNECTION + "api/produtos.asp?action=delete&token=token_admin",
                     type: "POST",
                     contentType: "application/json",
                     data: JSON.stringify({ produtoId: produtoId }),
@@ -251,7 +252,7 @@
                 if (acaoSelecionada === 'add') {
                     try {
                         const res = await $.ajax({
-                            url: 'http://localhost:8085/api/produtos.asp?action=add&token=token_admin',
+                            url: API_CONNECTION + 'api/produtos.asp?action=add&token=token_admin',
                             type: 'POST',
                             contentType: 'application/json',
                             data: JSON.stringify(data)
@@ -267,7 +268,7 @@
                     data.produtoId = parseInt($('#produtoId').val());
                     try {
                         const res = await $.ajax({
-                            url: 'http://localhost:8085/api/produtos.asp?action=update&token=token_admin',
+                            url: API_CONNECTION + 'api/produtos.asp?action=update&token=token_admin',
                             type: 'POST',
                             contentType: 'application/json',
                             data: JSON.stringify(data)

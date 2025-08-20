@@ -1,6 +1,6 @@
 <%@ LANGUAGE="VBSCRIPT" %>
-<!-- #include virtual="includes/conexao.asp" -->
-<!--#include virtual="includes/validaToken.asp" -->
+<!-- #include virtual="includes/conexao.inc" -->
+<!--#include virtual="includes/validaToken.inc" -->
 
 <!DOCTYPE html>
 <html lang="pt-br">
@@ -38,7 +38,7 @@
 <body>
 <div class="d-flex">
     <!-- Sidebar -->
-    <!--#include file="includes/sidebar.asp" -->
+    <!--#include file="includes/sidebar.inc" -->
 
     <div class="conteudo-usuarios">
         <h2>Usuários</h2>
@@ -98,7 +98,7 @@
 
             const carregarUsuarios = async () => {
                 try {
-                    const resp = await fetch("http://localhost:8085/api/auth.asp?action=list&token=token_admin");
+                    const resp = await fetch("http://localhost:8083/api/auth.asp?action=list&token=token_admin");
                     usuarios = await resp.json();
 
                     container.innerHTML = `

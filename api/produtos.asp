@@ -1,8 +1,8 @@
 <%@ Language="VBScript" %>
-<!--#include virtual="/includes/conexao.asp" -->
-<!--#include virtual="/includes/json.asp" -->
-<!--#include virtual="/includes/geraToken.asp" -->
-<!--#include virtual="/includes/validaToken.asp" -->
+<!--#include virtual="/includes/conexao.inc" -->
+<!--#include virtual="/includes/json.inc" -->
+<!--#include virtual="/includes/geraToken.inc" -->
+<!--#include virtual="/includes/validaToken.inc" -->
 
 <%
 Response.ContentType = "application/json"
@@ -31,7 +31,6 @@ Function ListarProdutos()
 
         json = json & "{""ProdutoID"": " & rs("Id") & _
                        ", ""Nome"": """ & rs("Nome") & """" & _
-                       ", ""Descricao"": """ & rs("Descricao") & """" & _
                        ", ""Preco"": " & Replace(CStr(rs("Preco")), ",", ".") & _
                        ", ""Estoque"": " & rs("Estoque") & "}"
         rs.MoveNext

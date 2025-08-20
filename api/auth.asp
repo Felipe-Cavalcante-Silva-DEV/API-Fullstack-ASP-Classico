@@ -1,8 +1,8 @@
 <%@ Language="VBScript" %>
-<!--#include virtual="/includes/conexao.asp" -->
-<!--#include virtual="/includes/json.asp" -->
-<!--#include virtual="/includes/geraToken.asp" -->
-<!--#include virtual="/includes/validaTokenApi.asp" -->
+<!--#include virtual="/includes/conexao.inc" -->
+<!--#include virtual="/includes/json.inc" -->
+<!--#include virtual="/includes/geraToken.inc" -->
+<!--#include virtual="/includes/validaTokenApi.inc" -->
 
 <%
 Dim action
@@ -146,7 +146,11 @@ Select Case action
         End If
 
     Case "list"
-         If Not ValidarToken() Then Response.End
+         If not ValidarToken() then
+            Response.Status = "401 Unauthorized"
+            Response.Write "{""success"":false,""message"":""token inválidas""}"
+            Response.End
+        End if
 
         Response.ContentType = "application/json"
         Response.Write ListarUsuarios()

@@ -1,4 +1,6 @@
-<!--#include virtual="includes/conexao.asp" -->
+<!-- #include virtual="includes/conexao.inc" -->
+<!-- #include virtual="includes/validaTokenApi.inc" -->
+<!-- #include virtual="includes/appsettings.inc" -->
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
@@ -41,7 +43,7 @@
 <div id="regMsg" class="w-50 mx-auto"></div>
 
 <script>
-
+    const API_CONNECTION = "<%= API_CONNECTION %>";
 
     $('#loginForm').submit(function(e) {
         e.preventDefault();
@@ -53,7 +55,7 @@
         };
 
         $.ajax({
-            url: 'http://localhost:8085/api/auth.asp?action=login',
+            url: API_CONNECTION + "api/auth.asp?action=login",
             type: 'POST',
             contentType: 'application/json',
             data: JSON.stringify(data),
@@ -90,7 +92,7 @@ $('#registerForm').submit(function(e) {
     };
 
     $.ajax({
-        url: 'http://localhost:8085/api/auth.asp?action=register',
+        url: 'http://localhost:8083/api/auth.asp?action=register',
         type: 'POST',
         contentType: 'application/json',
         data: JSON.stringify(data),

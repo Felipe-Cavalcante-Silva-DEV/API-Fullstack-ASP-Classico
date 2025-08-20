@@ -5,8 +5,6 @@
         CREATE DATABASE api;
     GO
 
-    USE api;
-    GO
 
     -- =========================
     -- TABELAS
@@ -48,39 +46,11 @@
     GO
 
 
-    -- =========================
-    -- SEED DATA
-    -- =========================
 
-    -- Usuário produtos padrão
-    INSERT INTO Produtos (Nome, Descricao, Preco, Estoque)
-    VALUES
-    ('Notebook Dell', 'Notebook para uso geral', 3500.00, 10),
-    ('Teclado Mecânico', 'Teclado gamer RGB', 450.00, 20),
-    ('Mouse Logitech', 'Mouse sem fio', 150.00, 30);
-
-    INSERT INTO Usuarios (Nome, Email, SenhaHash, Token)
-    VALUES
-    ('Admin', 'Admin@admin.com', teste, token_admin);
+ 
 
 
-
-    -- =========================
-    -- FUNCTION
-    -- =========================
-    CREATE OR ALTER FUNCTION fnValidarToken (@token NVARCHAR(200))
-    RETURNS BIT
-    AS
-    BEGIN
-        DECLARE @isValid BIT = 0;
-
-        IF EXISTS (SELECT 1 FROM Usuarios WHERE Token = @token)
-            SET @isValid = 1;
-
-        RETURN @isValid;
-    END;
-    GO
-
+    
     -- =========================
     -- PROCEDURES
     -- =========================
@@ -227,3 +197,19 @@
         VALUES ('DELETE', 'Produtos', @Id);
     END;
     GO
+
+
+       -- =========================
+    -- SEED DATA
+    -- =========================
+
+    -- Usuário produtos padrão
+    INSERT INTO Produtos (Nome, Descricao, Preco, Estoque)
+    VALUES
+    ('Notebook Dell', 'Notebook para uso geral', 3500.00, 10),
+    ('Teclado Mecânico', 'Teclado gamer RGB', 450.00, 20),
+    ('Mouse Logitech', 'Mouse sem fio', 150.00, 30);
+
+    INSERT INTO Usuarios (Nome, Email, SenhaHash, Token)
+    VALUES
+    ('Admin', 'Admin@admin.com', 123, 'token_admin');
